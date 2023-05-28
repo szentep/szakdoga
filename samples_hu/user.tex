@@ -3,150 +3,19 @@
 \label{ch:user}
 % ------------------------------------------------------
 
+\section{A megoldott probléma}
+
+A készített programmal harmadfokú Bézier-felületek jeleníthetők meg. A Bézier-felületeket egy kontrollpont-háló definiálja. A felület pontjait a kontrollpontok speciális súlyozott átlagaként kapjuk. A felület modellezés szempontjából legfontosabb tulajdonsága, hogy a kontrollpontoknak a pont környezetében van leginkább hatása, így a felület a kontrollpont-hálón keresztül intuitívan manipulálható.
+
+Ha a felülethez árnyékokat is szeretnénk kiszámítani, akkor általában valamilyen sugárkövetési algoritmust használunk. A programban az ú.n. sphere trace sugárkövető algoritmust használtam. Ennek megvalósításához szükség van a felületet határoló dobozon belül minden pontban a felület távolságára, vagy annak egy \emph{alsó} közelítésére. Ezt nevezzük távolságfüggvénynek. A távolságfüggvényt egy diszkrét rácson kiértékelem, majd textúrában eltárolom. Ezt nevezzük távolságmezőnek. A távolságmezőt elég a program elején kiszámítani, mert ha a felület nem változik, akkor minden képkocka kirajzolásakor újrahasználható.
+
+A távolságmező generálására több különböző algoritmust is implementáltam. A program segítségével ezen módszerek paramétereivel lehet kísérletezni, illetve az egyes módszereket össze lehet hasonlítani.
 
 
+\section{A felhasznált módszerek}
 
-% ------------------------------------------------------
-\chapter{Elméleti háttér}
-% ------------------------------------------------------
-
-A sugárkövetéssel történő képszintézisről részletes összefoglaló olvasható Bálint Csaba OTDK dolgozatában \cite[11-16. o.]{BalintCsaba}, így azt itt nem részletezem.
-
-\section{Sphere tracing}
-
-Adott egy $d:\mathbb{R}^n\rightarrow\mathbb{R}$ előjeles távolságfüggvény, mely minden bemenetre a pont a felület határától vett előjeles távolságát adja. Ez az érték a felület által határolt térrész belsejében negatív, kívül pedig pozitív. Formálisan $d$ akkor távolságfüggvény, ha az alábbi teljesül \cite{Hart1996}:
-$$f(p) = d(p, f^{-1}(0)) (p \in \mathbb{R}^n)$$
-
-A sugárkövetés során adott egy kiinduló pont és egy sugárirány. A cél a félegyenes-felület metszéspont megtalálása. Míg a sugármetszés egyszerűbb matematikai objektumok esetén (pl. gömb, sík) analitikusan elvégezhető, bonyolultabb testek esetén csak óvatosabban közelíthetünk a felülethez a sugáron. (Ray Marching\cite{RayMarching})
-
-A sphere trace algoritmusról Hart cikkében \cite{Hart1996} részletesen olvashatunk. Röviden összefoglalva a sphere trace egy sugárkövető algoritmus, mely minden lépésben kiértékeli a távolságfüggvényt. Tudjuk, hogy a távolságfüggvénnyel megegyező méretű üres tér van a pont körül, hiszen az a felülethez vett távolság minimumát, vagy annak \emph{alsó közelítését} adja. Ekkor a távolsággal megegyező méretűt léphetünk a sugár mentén. A sugárkövetés a felület közelében lelassul. Ha a távolság epszilonnál kisebb, vagy fix lépésszám után leállítjuk az iterációt.  
-
-
-\section{Előjeles távolságfüggvények}
-
-
-\subsection{Egyszerűbb alakzatok}
-Inigo Quilez oldalán \cite{QuilezDistanceFunctions} felsorolja sok egyszerűbb alakzat analitikus távolságfüggvényét. Például egy $o$ középpontú és $r$ sugarú gömb előjeles távolságfüggvénye:
-$$ d_{g}(p) = \norm{p-o}_2 - r $$
-A weboldalon további testek távolságfüggvényei is láthatók. Ezekből aztán könnyen építhetünk színteret az alábbi tömörtest-modellezésben is használt műveletekkel: (Legyen az $A$ testtől vett előjeles távolságfüggvény $d_A$, a $B$ testtől vett pedig $d_B$)
-
-\begin{itemize}
-	\item Mivel a távolságfüggvény a legközelebbi távolságot adja, két test uniója a távolságfüggvények minimuma. $d(A\cup B) = min(d_A, d_B)$
-	\item  Egy test ,,kifordítható'', ha a távolságfüggvény $-1$-szeresét vesszük $d\left(\overline{A}\right) = -d_A$.
-	\item Két test metszete a távolságfüggvények maximuma, hiszen addig haladhatunk a sugár mentén, amíg mindkét alakzatot el nem találjuk. $d(A\cap B) = max(d_A, d_B)$
-	\item Kivonást is elvégezhetünk, ha a test és a kifordított test metszetét vesszük. $d(A\backslash B) = max(d_A,-d_B)$ 
-\end{itemize}
-
-Elvégezhetők még a testeken transzformációk, ami általában a mintavételezési pontra alkalmazott inverz-transzformációval történik. Ilyenek például a nagyítás, nyújtás, lekerekítés, forgatás, kétdimenziós alakzat kiterjesztése hasábbá vagy forgástestté.
-
-Különösen érdekesek a tükrözés, ami az abszolút érték függvénnyel elvégezhető, illetve az alakzat véges és végtelen ismétlése, melyet a koordinátára alkalmazott moduló operátorral lehet elérni. \cite{QuilezDistanceFunctions}
-
-
-\subsection{Parametrikus felületek távolságfüggvénye}
-
-Háromdimenziós euklideszi térben parametrikus egyenlettel megadott felületeket hívjuk így. $f:\mathbb{R}^2\rightarrow\mathbb{R}^3$ Azért felület, mert a vektor-értékű függvény értelmezési tartomány beli pontjaihoz háromdimenziós pontokat rendelünk. Modellezéskor így a test felszínét adjuk meg.  Például a tórusz parametrikus egyenlete:
-$$ f(u,v) = \begin{pmatrix} 
-	r\cdot sin(v) \\ 
-	(R+r\cdot cos(v))\cdot sin(u) \\ 
-	(R+r\cdot cos(v))\cdot cos(u)
-\end{pmatrix} $$
-Ahol $r$ a generáló kör sugara, $R$ pedig a forgástengely és a kör középpontjának távolsága. $u$ és $v$ szögek, így $u,v\in[0,2\pi]$  
-Parametrikus egyenlettel megadhatók függvények grafikonjai is. Legyen $h(u,v)$ a függvény, ekkor a grafikon parametrikus egyenlete:
-$$ f(u,v) = (u,v,h(u,v)) $$
-\begin{figure}[H]
-	\centering
-	\includegraphics[width=0.3\textwidth]{sinuv}
-	\caption{$h(u,v) = sin(u+v)+1$ grafikon a GeoGebra alkalmazásban.}
-\end{figure}
-
-Ezen felületek távolságfüggvénye analitikusan sok esetben nem meghatározható. Vegyünk egy kétdimenziós példát, az $y = sin(x)$ függvényt és egy $(e,f)$ mintavételezési pontot, amihez a legközelebbi pontot keressük a felületen. ekkor a minimalizálandó függvény: 
-$$ d(x) = \sqrt{(x-e)^2+(sin(x)-f)^2} $$
-A gyök függvény szigorú monotonitása miatt vizsgáljuk $d^2$ minimumát. Az elsőrendű szükséges feltétel: 
-$$ cos(x)\cdot(sin(x)-f)+x-e = 0 $$ 
-Ezt csak néhány speciális esetben tudjuk analitikusan megoldani.
-
-Polinomokkal sem boldogulunk könnyen analitikus módszerekkel. Például ha a polinom fokszáma harmadfokú, akkor a négyzetre emelés és deriválás után egy ötödfokú polinom gyökeit kellene meghatározni. Erre már nem létezik megoldóképlet. Ez az eset előkerül a dolgozatomban a Bezier felületek tárgyalásánál.
-
-
-\section{Bézier görbék}
-
-Ennek a résznek alapul G. Farin: Curves and Surfaces for CAGD című könyve szolgált. \cite{farin2002curves} A de Casteljau-algoritmusról és Bézier-görbékről a könyv 45-47., a Bernstein-polinomokról a könyv 57. oldalán olvashatunk. Ezeket itt nem részletezem, csak a szükséges tételeket mutatom be. 
-
-\subsection{Bernstein-alak}
-Az $i$-edik $n$-edfokú Bernstein-polinom alakja:
-$$ B^n_i(t) = \binom{n}{i}t^i(1-t)^{n-i} $$
-Legyenek egy $n$-edfokú Bézier-görbe kontrollpontjai $b_0,b_2,\dots,b_n$ Ekkor a görbe felírható Bernstein-bázisban:
-$$ b(t) = \sum_{i=0}^n b_i B^n_i(t) $$
-Ezt a görbe Bernstein-alakjának is nevezik
-
-\subsection{Végpont interpoláció}
-A Bernstein-polinomok tulajdonságaiból adódik, hogy a görbe a végpontjaiban egyenlő a szélső kontrollpontokkal, azaz interpolál.
-
-\subsection{Pszeudolokális kontroll}
-A legfontosabb tulajdonsága ezen görbéknek, hogy egy kontrollpont megváltoztatása csak annak környezetét változtatja meg jelentősen. Ennek oka, hogy $B^n_i(t)$-nek egyetlen maximuma van, a $t = i/n$ helyen. \cite[62. o.]{farin2002curves}
-
-A végpont interpoláció és a pszeudolokális kontroll miatt a görbe különösen alkalmas számítógépes modellezésre, mivel a felület a kontrollponthálójával intuitívan manipulálható.
-
-\subsection{Derivált}
-A görbe deriváltja: \cite[63. o.]{farin2002curves}
-$$ b'(t) = n\sum_{i=0}^{n-1} \Delta b_i B^{n-1}_i(t) $$
-Ahol $\Delta b_i = b_{i+1} - b_i$ ($\Delta$ a jobboldali differenciaoperátor.)
-
-
-
-\section{Bézier-felületek}
-
-\subsection{Bilineáris interpoláció}
-Farin a Bézier felületeket a tenzor szorzat felületek bevezetéseként írja le. Egy egyik irámyban $m$, másik irányban $n$-edfokú felületet $(m+1)\cross(n+1)$ kontrollpont definiál. A felület pontjai kiszámíthatók a kontrollpontháló ismételt bilineáris interpolációjával. Ezt a felület pontbeli kiértékelésének nevezzük.
-
-\begin{figure}[H]
-	\centering
-	\includegraphics[width=0.5\textwidth]{Farin_bilinear}
-	\caption{Bézier-felület kiértékelése \cite[248. o.]{farin2002curves}}
-\end{figure}
-
-\subsection{Bernstein-alak}
-A végeredmény szempontjából lényegtelen, hogy az interpolációkat milyen sorrendben végezzük. Például kiértékelhetjük a kontrollponthálót az egyik paraméter szerint, majd az így keletkezett kontrollpontok által definiált Bézier-görbét a másik paraméter szerint. \cite[251. o.]{farin2002curves} A felület Bernstein-alakja:
-$$ b^{m,n}(u,v) = \sum_{i=0}^m \sum_{j=0}^n b_{i,j}\, B^m_i(u) B^n_j(v) $$
-
-\subsection{Parciális deriváltak}
-A könnyebb leírás érdekében bevezetjük a parciális differenciaoperátort. Ennek szabályai: $\Delta^{1,0}b_{i,j} = b_{i+1,j} - b_{i,j}$ és  $\Delta^{0,1}b_{i,j} = b_{i,j+1} - b_{i,j}$
-
-A parciális deriváltat a Bézier-görbe deriváltjára vezetjük vissza:
-$$ \partial_u b^{m,n}(u,v) = \sum_{j=0}^n \left[\partial_u \sum_{i=0}^m b_{i,j} B^m_i(u) \right] B^n_j(v) $$
-$$ \partial_u b^{m,n}(u,v) = m\sum_{j=0}^n \sum_{i=0}^{m-1} \Delta^{1,0} b_{i,j} B^{m-1}_i(u)  B^n_j(v) $$
-A másik parciális derivált hasonlóan meghatározható:
-$$ \partial_v b^{m,n}(u,v) = n\sum_{j=0}^{n-1} \sum_{i=0}^m \Delta^{0,1} b_{i,j} B^m_i(u)  B^{n-1}_j(v) $$
-Magasabbrendű deriváltakat a dolgozatban nem használtam, így azokat itt nem tárgyalom. Az általános alak szintén megtalálható Farin könyvében.
-
-
-
-\section{Legközelebbi pont meghatározása}
-
-A legközelebbi pont meghatározása nem egyszerű feladat. Egyszerűsítésként egy $b(x,y)$ függvény grafikonjára próbáljuk meg meghatározni. Ezen belül is vegyünk egy harmadfokú Bézier-felületet.
-
-\subsection{Merőlegesség feltétel}
-A legközelebbi pont szükséges feltétele: Az $E$ mintavételezési pontból a felületi pontba húzott egyenes merőleges mindkét parciális deriváltra. Egyik irányra felírva:
-$$ r(x,y) = (x,y,b(x,y)) $$
-$$ \frac{dr}{dx} = (1,0,b_x(x,y)) $$
-Ahol $b_x$ az első koordináta szerinti parciális derivált. A mintavételezési pont legyen az origó. Ezt megtehetjük, hiszen a felületet átparaméterezhető úgy, hogy a mintavételezési pont az origóba essen. Ha két vektor merőleges, a skalárszorzatuk $0$.
-$$ 0 = \left\langle r, \frac{dr}{dx} \right\rangle = \begin{pmatrix} 1 $ 0 $ b_x(x,y) \end{pmatrix} \cdot \begin{pmatrix} x \\ y \\ b(x,y)\end{pmatrix} = x + b_x(x,y)b(x,y) $$
-$x$ szerint parciálisan integrálva: 
-$$ f(y) = x^2/2 + b(x,y)^2 $$
-$$ x=0 \rightarrow f(y) = b(0,y)^2 $$
-$$ b(0,y)^2 = x^2/2 + b(x,y)^2 $$
-A feltétel barátságos alakja ellenére a mi esetünkben (harmadfokú Bézier) ez egy ötödfokú kétismeretlenes egyenlet tetszőleges együtthatókkal. 
-
-Látjuk, hogy ez a megközelítés nem vezet eredményre. Ugyanezt az egyenletet kapjuk, ha a szükséges feltételt a felületi normális segítségével írjuk fel. Ezt itt nem részletezem. Az algoritmusok résznél a problémára több közelítési módszert is bemutatok.
-
-% ------------------------------------------------------
-\chapter{Algoritmusok}
-% ------------------------------------------------------
-
-\section{Tesszelláció}
-
+\subsection{Tesszelláció}
 A legelső megjelenítési mód a felület háromszögekkel való közelítése. A Tesszelláció vagy háromszögelés során a cél úgy lefedni háromszögekkel a felületet, hogy annak részletei ne vesszenek el. Ez egyben a leggyakrabban használt modellezési módszer is. A videókártyák hardveresen támogatják háromszögek raszterizációját, így ez a módszer nagyon gyors. A többi módszer helyességét a háromszögekkel tesszellált közelítéssel fogom ellenőrizni. Ha függvények grafikonjait háromszögeljük, általában egyenletes felosztást veszünk a parmétertérben. A függvényértéket a harmadik koordináta reprezentálja.
-
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=0.4\textwidth]{tess_torus}
@@ -155,11 +24,8 @@ A legelső megjelenítési mód a felület háromszögekkel való közelítése.
 	\caption{Tórusz és függvénygrafikon háromszögelése. Forrás: \href{https://www.wikiwand.com/en/Surface_triangulation}{wikiwand.com}}
 \end{figure}
 
-
-\section{Sugárkövetés motivációja}
-
+\subsection{Sugárkövetés motivációja}
 A sugárkövetés mindenképpen költségesebb művelet, mint a raszterizáció, hiszen visszaverődéseket, törést és árnyéksugarakat is számítunk a jobb eredmény érdekében. Ha a fotorealisztikus eredmény a cél, akkor viszont mindenképpen sugárkövetést használunk és a cél az extra számítási költségek csökkentése, a sugárkövetés felgyorsítása. 
-
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=0.7\textwidth]{pt-rt-raster}
@@ -167,117 +33,112 @@ A sugárkövetés mindenképpen költségesebb művelet, mint a raszterizáció,
 \end{figure}
 
 
-\section{Fénymodell}
-
-Fénymodellnek egy egyszerű Blinn-Phong árnyalást használtam \cite{Blinn1977} árnyéksugarakkal. Az árnyéksugár számítás ugyanazt az algoritmust használja, mint a sugárkövetés. Ha elmetsszük a felületet a felületi pontból a (pont)fényforrás felé indított sugárral, akkor a felületi pont árnyékban van.
-
-Fontos megemlíteni, hogy a távolságfüggvények segítségével puha árnyékszámító algoritmus is adható. \cite{AreaLights}
-
-
-\section{Távolságfüggvény rács számítása}
-
-A távolságfüggvényt egy diszkrét rácson értékelem ki, melyet egy háromdimenziós textúrában tárolok. Mivel csak a mintavételezési pont változik, maga a kiértékelendő (vagy meghatározandó) távolságfüggvény nem, így ki tudom használni a GPU masszívan párhuzamos architektúráját. A textúrát saját GPU compute shaderek segítségével számítom ki. A számítás elvégzésére később több módszert is mutatok. 
-
-Fontos megjegyezni, hogy ennek a műveletnek nem kell valós idejűnek lennie. A program indításakor a textúra több frame alatt kiszámítható. Ezután elég a textúrát a fragment shader számára feltölteni a GPU-ra a sugárkövetés előtt.
-
-
-\section{Sugárkövetés távolságmezőn}
-
-A sugárkövetés során adott a kiinduló pont $P$, és a sugár iránya $d$. Emellett adott egy $F$ függvény, mely az előbb részletezett textúra olvasást és bilineáris interpolációt elvégzi, majd visszaadja a távolságfüggvény becslését. A távolságfüggvény rácsból az értékeket a textúra bilineáris interpolációjával nyerem ki. Ez a fajta textúra mintavételezés egy hardveresen támogatott művelet a GPU-n. Az alábbi függvény a kiindulási pont és a sugár felülettel vett első metszéspontjának távolságát adja meg.
-
-\begin{algorithm}[H]
-	\caption{Sugárkövetés távolságmezőn}
-	\label{alg:ibb}
-	\textbf{\underline{Funct}} DSFBoxTrace($P,d,F$)
-	\begin{algorithmic}[1] % sorszámok megjelenítése minden n. sor előtt, most n = 1
-		\If{$P$ a dobozon kívül van}
-		\State{\textbf{return} $-1$} \Comment{Távolság nem definiált}
-		\EndIf
-		\If{$F(P) \leq 0$}
-		\State{\textbf{return} $0$} \Comment{A doboz oldalán már a felületben vagyunk}
-		\EndIf
-		\State{$depth := 0$}
-		\For{$i \gets 1$ to maxSteps} \Comment{Maximum lépésszám}                    
-		\State{$dist := F(P + depth * d)$}
-		\If{$abs(dist) < \varepsilon$}
-		\State{\textbf{return} $depth$} \Comment{Eltaláltuk a felületet}
-		\EndIf
-		\State{$depth\; +\! = dist$}
-		\State{$currPos := P + depth * d$}
-		\If{$currPos$ a dobozon kívül van}
-		\State \textbf{return} $-1$; \Comment{Távolság nem definiált, nincs metszés}
-		\EndIf
-		\EndFor
-		\State \textbf{return} $-1$; \Comment{Távolság nem definiált, nincs metszés}
-	\end{algorithmic}
-\end{algorithm}
-
-
-\section{Egyszerűbb távolságfüggvény számító algoritmusok}
-
-Ebben a részben két egyszerűbb megközelítést mutatok be, melyek általánosan használhatók előjeles távolságfüggvények generálására.
+\section{Távolságmező-számítás}
 
 \subsection{Lipschitz módszer}
-A módszer elméleti hátterét Bálint Csaba dolgozatából \cite[18. o.]{BalintCsaba} idézem: ,,$\dots$ ha $f \in \mathbb{R}^n \rightarrow \mathbb{R}$ függvény Lipschitz folytonos, akkor
-$$ \frac{|f|}{Lip(f)} $$
-távolságfüggvény becslés. Általában az abszolút érték elhagyható, hogy előjeles távolságfüggvényt kapjunk. Ezzel egy módszert kaptunk arra, hogy egy implicit függvényhez hogyan gyártsunk távolságfüggvényt. Sokszor a $Lip(f)$-et csak felülről tudjuk becsülni, vagy nem éri meg kiszámolni. Ilyenkor természetesen $f$-et a $Lip(f)$ felső becslésével osztva egy rosszabb becslést kapunk, amivel sokszor lényegesen lassabb a számolás.''
-
-A módszerrel egy grafikon például megjeleníthető az alábbi módon:
-\begin{itemize}
-	\item Egy előre meghatározott felbontású rácson kiértékeljük a függvényt. Ezzel egy magasságtérképet generálunk.
-	\item Megbecsüljük a Lipschitz konstanst a számolt értékekből vagy megadjuk analitikusan, ha ismert.
-	\item A távolságmező minden eleme a pont magasságtérképtől vett távolsága lesz, $Lip(f)$-el leosztva. Ezzel távolságfüggvény-becslést kapunk.
-\end{itemize}
+A Lipschitz módszer lényege azt használja ki, hogy ha a felületen kicsit arrébb megyünk, akkor a távolság nem változhat tetszőlegesen nagyot. Formálisan:
+$$ |f(x)-f(y)| \le L \cdot |x-y| $$
+ahol $L$ az ú.n. Lipschitz-konstans. Ennek a konstansnak a beállításával egyszerűen kapunk alsó közelítést a távolságfüggvényre.
 
 \subsection{Brute force}
 A felületet valamilyen felbontáson kiértékeljük. A legközelebbi pont távolságát eltároljuk a távolságmezőben. A módszer hátránya, hogy a számítási igény négyzetesen nő a felbontás növelésével. (Amellett, hogy a háromdimenziós rács minden pontjára külön ki kell számolni.)
 
-A módszer előnye, hogy a távolságmező (a felbontás limitációja mellett) pontos és maximális lesz. A távolságmező minden pontjára igaz, hogy az értéke nem növelhető, hiszen minden pontra létezik olyan sugár, melyen az ott tárolt távolságot lépve a felület egy ismert pontjába lépünk. Ezen tulajdonság miatt a sugárkövetésnek sokkal kevesebb lépésre van szüksége a felület megtalálására. A bemutatott két módszer közül a brute force a preferált, hiszen a távolságmező előszámítható és akár el is tárolható háttértáron.
+\subsection{AdaMax sztochasztikus gradiens módszer}
+Itt a legközelebbi pont meghatározására egy gradiens módszert alkalmazunk, mely több lépésben közelít a lokális minimum távolság felé. Ha elég sok helyről elindítjuk, akkor a globális optimumot is megkapjuk.
 
+\section{Felhasználói felület}
 
-\section{Gradiens módszerek}
+\subsection{Navigáció}
+A színtérben az alábbi billenytűk lenyomásával mozoghatunk:
+\begin{compactenum}
+	\item A: mozgás balra
+	\item W: mozgás előre
+	\item S: mozgás hátra
+	\item D: mozgás jobbra
+	\item Q: süllyedés
+	\item E: emelkedés
+\end{compactenum}
 
-A felülettől vett minimális távolság valójában egy optimalizációs probléma. Optimalizációs problémák megoldásának nagyon széles szakirodalma van. Ilyen problémát kell megoldani többek között neuronhálók tanításánál is. 2020-ban távolságfüggvényekkel való ütközésdetektálás javítására is használtak lokális optimalizációt. \cite{locOptSDFCollision} A távolságfüggvényekhez két, a gépi tanulásban elterjedt algoritmust is implementáltam.
-
-\subsection{Gradiens módszer}
-A Gradiens módszer egy elsőrendű iteratív optimalizációs algoritmus. A módszer alapötletét egészen Cauchy-ig vezetik vissza \cite{LemarechalOnGrad}, így egyáltalán nem újszerű. Az iteráció egy lépése:
-$$ a_{n+1} = a_n - \alpha\nabla F(a_n) $$
-Ahol $F$ a minimalizálandó függvény, $\nabla$ a gradiens-operátor és $\alpha$ a tanulási ráta. $\alpha$ egy kis konstans, ami a módszer konvergenciáját biztosítja. Ha túl nagyra állítjuk, akkor a módszer nem konvergál. 
+\subsection{Gyorsbillentyűk}
+Az programban az alábbi fontosabb gyorsbillentyűk érhetők el:
+\begin{compactenum}
+	\item ESC: kilépés
+	\item F2: GUI elrejtése / előhozása
+	\item F5: shaderek újratöltése
+	\item F12: képernyőfelvétel készítése
+	\item V: VSync be- és kikapcsolása 
+	\item Space: idő megállítása / elindítása
+	\item billenytűzetkiosztástól függően Z vagy Y: nagyítás egy pixel környezetére.
+	\item P: profilozó előhozása / elrejtése. A profilozóval a generálás és kirajzolás CPU- és GPU-idejét lehet mérni. 
+\end{compactenum}
+A gyorsbillentyűkről további információt kapunk, ha a kurzort a ,,Keyboard Shortcuts'' fleirat melletti kérdőjelre visszük. 
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=0.4\textwidth]{divergence}
-	\caption{Gradiens módszer divergenciája túl nagy tanulási ráta esetén}
+	\includegraphics[width=0.4\textwidth]{gui/profiler.png}
+	\caption{Profilozó ablak}
+	\label{fig:profilerp}
 \end{figure}
-A módszer felparaméterezését és alkalmazhatóságát a szimulációs eredményeknél tárgyalom.
 
-\subsection{Adam sztochasztikus gradiens módszer}
-Az Adam \cite{Adam} egy sztochasztikus gradiens módszer. Minden lépésben adaptívan változtatja a tanulás paramétereit. Ezekek közül $m_t$ egy tapasztalati momentum, melyet a korábbi gradiensek exponenciálisan csökkenő súlyozásával kapunk. Hasonlóan számítandó $v_t$, mely a gradiensek négyzetének súlyozott átlaga, avagy a tapasztalati szórás. Legyen $g_t$ a gradiens, ekkor
-$$ m_t = \beta_1 m_{t-1} + (1-\beta_1)g_t $$
-$$ v_t = \beta_2 v_{t-1} + (1-\beta_2)g^2_t $$
-Ahol $\beta_1$ és $\beta_2$ a módszer hiperparaméterei. A paraméterek a gyakorlatban a kezdeti értékük felé (általában 0) statisztikai ferdeséget (bias) mutatnak, ezért korrigálni kell őket:
-$$ \hat{m_t} = \frac{m_t}{1-\beta_1^t} $$
-$$ \hat{v_t} = \frac{v_t}{1-\beta_2^t} $$
-Ezután egy lépés szabálya:
-$$ a_{n+1} = a_n - \frac{\alpha}{\sqrt{\hat{v_t}}+\varepsilon}\hat{m_t} $$
-A hiperparaméterekre a cikk szerzői ezeket az értékeket javasolják: $\alpha=0.002$ $\beta_1=0.9$ $\beta_2=0.999$ és $\varepsilon=10^{-6}$. Ezeket szimulációs eredmények alapján állítottam be az saját alkalmazáshoz. Mivel a GPU-n a dupla pontosságú lebegőpontos értékek számításigényesebbek, így shader környezetben nagyobb $\varepsilon$-t kell használni a numerikus stabilitás érdekében.
+\subsection{Beállítások}
 
-\subsection{AdaMax variáns}
-Ezt a módosítást a cikk \cite{Adam} szerzői a cikk végén írják le. A lényege, hogy a szórás számításánál a kettes norma kicserélhető végtelen normára. Ezután a frissítés szabálya átalakítható max függvénnyé: (Itt $v_t$-t $u_t$-re cseréljük a megkülönböztethetőség kedvéért)
-\begin{align*} 
-	u_t &= \beta_2 u_{t-1} + (1-\beta_2)\norm{g_t}_\infty \\ 
-	u_t &= \max (\beta_2 u_{t-1}, |g_t|)
-\end{align*}
-Az AdaMax frissítési szabálya ennek felhasználásával:
-$$ a_{n+1} = a_n - \frac{\alpha}{u_t}\hat{m_t} $$
-Végül ezt a variánst implementáltam GPU-n, mivel a számítása egyszerűbb és numerikusan stabilab, illetve mert néhány iterációval jobb eredményt ért el a szimuláció során. 
+A felhasználói felület részeként a képernyő bal oldalán a jelenet és a generálás paraméterei találhatók. A beállításokat több lenyitható menübe szerveztem. A felületen találhatók gombok, számbeviteli mezők, csúszkák és lenyíló menük is, melyekkel több opció közül választhatunk. A számbeviteli mezőkbe dupla kattintással gépelni is lehet, illetve ha a bal egérgombot lenyomva oldalra húzzuk őket, akkor az érték nőni, illetve csökkeni fog előre beállítot határok között.
+
+Figyelem, nem minden beállítás eredményez szép képet és helyes megjelenítést. Mivel a program célja a paraméterek beállítása, ez nem hibás működés.
+
+\Aref{fig:global-settings} ábrán a globális beállítások találhatók. A Time mező az eltelt időt mutatja. A Scale paraméterrel beállíthatjuk, milyen gyorsan teljen. Alatta a felbontás állítható be. Ezt számbeviteli mezőkkel és legördülő menüből is kiválaszthatjuk. Készíthetünk még képernyőképet és videófelvételt is.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.4\textwidth]{gui/global.png}
+	\caption{Globális beállítások}
+	\label{fig:global-settings}
+\end{figure}
+
+\Aref{fig:camera-settings} ábrán a kamera beállításai szerepelnek. Az első paraméter a kamera mozgásának sebessége. A többi egy valódi kamera működését hivatott szimulálni. A Depth Range paraméter a közeli és távoli vágósík távolságát adja meg. Utána a kamera pozíciója és orientációja állítható be. Ezeket a paramétereket legkönnyebben a kamerát mozgató billentyűkkel és az egér mozgatásával állíthatjuk.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.4\textwidth]{gui/camera.png}
+	\caption{Kamera beállítások}
+	\label{fig:camera-settings}
+\end{figure}
+
+\Aref{fig:compute-settings} ábrán a felület generálásakor használt paramétereket lehet beállítani. Választhatunk a raszterizáció és a sugárkövetés között, vagy akár egymásra rajzoltathatjuk mindkettőt is. A ,,Generate new surface'' gombbal egy új felületet generálhatunk. A felület kontrollponthálóját az alatta lévő számbeviteli mezőkkel is állíthatjuk. A következő beállítások a távolságmező felbontása és a használt GPU-oldali adatreprezentáció, mely minden generálási módszert érint. Az utolsó beállítás a generálási módszer, majd esetleg a módszer hiperparaméterei. Ezek sorban:
+\begin{itemize}
+	\item Lipschitz constant: a Lipschitz--módszer konstansa. Minél nagyobb, annál lassabb lesz a sugárkövetés. Ha túl kicsire állítjuk, a módszer nem konvergál.
+	\item Number of iterations: az AdaMax módszer iterációszáma.
+	\item Alpha, Beta1, Beta2: Az AdaMax módszer hiperparaméterei. A képminőséget csak extremális esetben, vagy alacsony iterációszámnál befolyásolják.
+\end{itemize}
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.4\textwidth]{gui/compute.png}
+	\caption{Távolságmező-számításának beállításai}
+	\label{fig:compute-settings}
+\end{figure}
+
+\Aref{fig:trace-settings} ábrán a sugárkövetés, fények és az anyagtulajdonság beállításai szerepelnek. A sugárkövetésnél beállítható a maximális iterációszám, a kilépési feltétel (Epsilon) és egy relaxációs paraméter, mellyel a sugárkövetés sebességét változtathatjuk. Figyelem, egynél nagyobb relaxációs értékekre nem garantált a konvergencia.
+
+Beállítható egy ambiens fény, mely a tér minden pontját egyenlően megvilágítja. Egy csúszkával pontfényforrások adhatók a jelenethez, melyeknek a pozíciója és színe külön-külön állítható. A fényforrásoknak van egy alapbeállítása.
+
+Az anyag tulajdonságai az alapszíne (Ambient) illetve a rajta látható visszaverődés diffúz és spakuláris komponenseinek erőssége. Az anyagtulajdonságokat szürkeárnyalatos és RGB formátumban is állíthatjuk.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.4\textwidth]{gui/trace.png}
+	\caption{Sugárkövetés, fények és anyagtulajdonság beállításai}
+	\label{fig:trace-settings}
+\end{figure}
+
+\Aref{fig:box-settings} ábrán a kirajzolt felületek pozíciója és mérete állítható.
+
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.4\textwidth]{gui/box.png}
+	\caption{A kirajzolt dobozok pozíciója és mérete}
+	\label{fig:box-settings}
+\end{figure}
 
 
-\section{Vetített gradiens módszer}
 
-Előfordul, hogy az optimalizációs problémát a paramétertér csak egy kis részén kívánjuk megoldani. Például Bézier-felületeknél általában a $[0,1]$ intervallumon. Ebben az esetben nem elég az optimalizáció végén levetíteni az eredményt, ugyanis az a legtöbb esetben nem egyezik meg a tartományon vett minimumhellyel. \cite{MirrorDescent} Az sem jó, ha a lépés megtétele után vetítjük le a pontot a tartományra, ekkor ugyanis a gradiens módszer helytelen adatokkal fog számolni. 
 
-Már a gradiens számításakor figyelembe kell venni a korlátokat. Legyen $g$ a gradiens, $\pi_C()$ pedig egy függvény, ami minden pontot a hozzá legközelebbi $C$ tartománybeli pontba visz. A vetített gradiens így számítható:
-$$ g_p = (a_n - \pi_C(a_n-\varepsilon g))/\varepsilon $$
-Ahol $\varepsilon$ egy kis szám. Ez úgy értelmezhető, hogy a gradiens irányába megteszünk egy kis lépést, majd azt levetítjük a tartományra. A vetített pont és az előző pont különbségéből megkapjuk a vetített gradienst irányát.
-
-Ezt odaadjuk a gradiens módszerünknek, majd a lépés után ismét levetítjük. 
