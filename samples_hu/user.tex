@@ -1,204 +1,283 @@
+% ------------------------------------------------------
 \chapter{Felhasználói dokumentáció}
 \label{ch:user}
+% ------------------------------------------------------
 
-Lorem ipsum dolor sit amet $\mathbb{N}$\nomenclature{$\mathbb{N}$}{Set of natural numbers}, consectetur adipiscing elit. Duis nibh leo, dapibus in elementum nec, aliquet id sem. Suspendisse potenti. Nullam sit amet consectetur nibh. Donec scelerisque varius turpis at tincidunt. Cras a diam in mauris viverra vehicula. Vivamus mi odio, fermentum vel arcu efficitur, lacinia viverra nibh. Aliquam aliquam ante mi, vel pretium arcu dapibus eu. Nulla finibus ante vel arcu tincidunt, ut consectetur ligula finibus. Mauris mollis lectus sed ipsum bibendum, ac ultrices erat dictum. Suspendisse faucibus euismod lacinia $\mathbb{Z}$\nomenclature{$\mathbb{Z}$}{Set of integer numbers}.
 
 
-\section{Felsorolások}
 
-Etiam vel odio ante. Etiam pulvinar nibh quis massa auctor congue. Pellentesque quis odio vitae sapien molestie vestibulum sit amet et quam. Pellentesque vel dui eget enim hendrerit finibus at sit amet libero. Quisque sollicitudin ultrices enim, nec porta magna imperdiet vitae. Cras condimentum nunc dui, eget molestie nunc accumsan vel.
+% ------------------------------------------------------
+\chapter{Elméleti háttér}
+% ------------------------------------------------------
+
+A sugárkövetéssel történő képszintézisről részletes összefoglaló olvasható Bálint Csaba OTDK dolgozatában \cite[11-16. o.]{BalintCsaba}, így azt itt nem részletezem.
+
+\section{Sphere tracing}
+
+Adott egy $d:\mathbb{R}^n\rightarrow\mathbb{R}$ előjeles távolságfüggvény, mely minden bemenetre a pont a felület határától vett előjeles távolságát adja. Ez az érték a felület által határolt térrész belsejében negatív, kívül pedig pozitív. Formálisan $d$ akkor távolságfüggvény, ha az alábbi teljesül \cite{Hart1996}:
+$$f(p) = d(p, f^{-1}(0)) (p \in \mathbb{R}^n)$$
+
+A sugárkövetés során adott egy kiinduló pont és egy sugárirány. A cél a félegyenes-felület metszéspont megtalálása. Míg a sugármetszés egyszerűbb matematikai objektumok esetén (pl. gömb, sík) analitikusan elvégezhető, bonyolultabb testek esetén csak óvatosabban közelíthetünk a felülethez a sugáron. (Ray Marching\cite{RayMarching})
+
+A sphere trace algoritmusról Hart cikkében \cite{Hart1996} részletesen olvashatunk. Röviden összefoglalva a sphere trace egy sugárkövető algoritmus, mely minden lépésben kiértékeli a távolságfüggvényt. Tudjuk, hogy a távolságfüggvénnyel megegyező méretű üres tér van a pont körül, hiszen az a felülethez vett távolság minimumát, vagy annak \emph{alsó közelítését} adja. Ekkor a távolsággal megegyező méretűt léphetünk a sugár mentén. A sugárkövetés a felület közelében lelassul. Ha a távolság epszilonnál kisebb, vagy fix lépésszám után leállítjuk az iterációt.  
+
+
+\section{Előjeles távolságfüggvények}
+
+
+\subsection{Egyszerűbb alakzatok}
+Inigo Quilez oldalán \cite{QuilezDistanceFunctions} felsorolja sok egyszerűbb alakzat analitikus távolságfüggvényét. Például egy $o$ középpontú és $r$ sugarú gömb előjeles távolságfüggvénye:
+$$ d_{g}(p) = \norm{p-o}_2 - r $$
+A weboldalon további testek távolságfüggvényei is láthatók. Ezekből aztán könnyen építhetünk színteret az alábbi tömörtest-modellezésben is használt műveletekkel: (Legyen az $A$ testtől vett előjeles távolságfüggvény $d_A$, a $B$ testtől vett pedig $d_B$)
 
 \begin{itemize}
-	\item Fusce in aliquet neque, in pretium sem.
-	\item Donec tincidunt tellus id lectus pretium fringilla.
-	\item Nunc faucibus, erat pretium tempus tempor, tortor mi fringilla neque, ac congue ex dui vitae mauris.
+	\item Mivel a távolságfüggvény a legközelebbi távolságot adja, két test uniója a távolságfüggvények minimuma. $d(A\cup B) = min(d_A, d_B)$
+	\item  Egy test ,,kifordítható'', ha a távolságfüggvény $-1$-szeresét vesszük $d\left(\overline{A}\right) = -d_A$.
+	\item Két test metszete a távolságfüggvények maximuma, hiszen addig haladhatunk a sugár mentén, amíg mindkét alakzatot el nem találjuk. $d(A\cap B) = max(d_A, d_B)$
+	\item Kivonást is elvégezhetünk, ha a test és a kifordított test metszetét vesszük. $d(A\backslash B) = max(d_A,-d_B)$ 
 \end{itemize}
 
-Donec dapibus sodales ante, at scelerisque nunc laoreet sit amet. Mauris porttitor tincidunt neque, vel ullamcorper neque pulvinar et. Integer eu lorem euismod, faucibus lectus sed, accumsan felis. Nunc ornare mi at augue vulputate, eu venenatis magna mollis. Nunc sed posuere dui, et varius nulla. Sed mollis nibh augue, eget scelerisque eros ornare nec.
+Elvégezhetők még a testeken transzformációk, ami általában a mintavételezési pontra alkalmazott inverz-transzformációval történik. Ilyenek például a nagyítás, nyújtás, lekerekítés, forgatás, kétdimenziós alakzat kiterjesztése hasábbá vagy forgástestté.
 
-\begin{enumerate}
-	\item\label{step:first} Donec pretium et quam a cursus. Ut sollicitudin tempus urna et mollis.
-	\item Aliquam et aliquam turpis, sed fermentum mauris. Nulla eget ex diam.
-	\item Donec eget tellus pharetra, semper neque eget, rutrum diam \ref{step:first}.~lépés.
-\end{enumerate}
-
-Praesent porta, metus eget eleifend consequat, eros ligula eleifend ex, a pellentesque mi est vitae urna. Vivamus turpis nunc, iaculis non leo eget, mattis vulputate tellus. Maecenas rutrum eros sem, pharetra interdum nulla porttitor sit amet. In vitae viverra ante. Maecenas sit amet placerat orci, sed tincidunt velit. Vivamus mattis, enim vel suscipit elementum, quam odio venenatis elit\footnote{Phasellus faucibus varius purus, nec tristique enim porta vitae.}, et mollis nulla nunc a risus. Praesent purus magna, tristique sed lacus sit amet, convallis malesuada magna. 
-
-\begin{description}
-	\item[Vestibulum venenatis] malesuada enim, ac auctor erat vestibulum et. Phasellus id purus a leo suscipit accumsan.
-	\item[Orci varius natoque] penatibus et magnis dis parturient montes, nascetur ridiculus mus. Nullam interdum rhoncus nisl, vel pharetra arcu euismod sagittis. Vestibulum ac turpis auctor, viverra turpis at, tempus tellus.
-	\item[Morbi dignissim] erat ut rutrum aliquet. Nulla eu rutrum urna. Integer non urna at mauris scelerisque rutrum sed non turpis.
-\end{description}
-
-\subsection{Szoros térközű felsorolások}
-
-Phasellus ultricies, sapien sit amet ultricies placerat, velit purus viverra ligula, id consequat ipsum odio imperdiet enim:
-\begin{compactenum}
-	\item Maecenas eget lobortis leo.
-	\item Donec eget libero enim.
-	\item In eu eros a eros lacinia maximus ullamcorper eget augue.
-\end{compactenum}
-
-\bigskip
-
-In quis turpis metus. Proin maximus nibh et massa eleifend, a feugiat augue porta. Sed eget est purus. Duis in placerat leo. Donec pharetra eros nec enim convallis:
-\begin{compactitem}
-	\item Pellentesque odio lacus.
-	\item Maximus ut nisl auctor.
-	\item Sagittis vulputate lorem.
-\end{compactitem}
-
-\bigskip
-
-Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Sed lorem libero, dignissim vitae gravida a, ornare vitae est.
-\begin{compactdesc}
-	\item[Cras maximus] massa commodo pellentesque viverra.
-	\item[Morbi sit] amet ante risus. Aliquam nec sollicitudin mauris
-	\item[Ut aliquam rhoncus sapien] luctus viverra arcu iaculis posuere
-\end{compactdesc}
+Különösen érdekesek a tükrözés, ami az abszolút érték függvénnyel elvégezhető, illetve az alakzat véges és végtelen ismétlése, melyet a koordinátára alkalmazott moduló operátorral lehet elérni. \cite{QuilezDistanceFunctions}
 
 
-\section{Képek, ábrák}
+\subsection{Parametrikus felületek távolságfüggvénye}
 
-Aliquam vehicula luctus mi a pretium. Nulla quam neque, maximus nec velit in, aliquam mollis tortor. Aliquam erat volutpat. Curabitur vitae laoreet turpis. Integer id diam ligula. Nulla sodales purus id mi consequat, eu venenatis odio pharetra. Cras a arcu quam. Suspendisse augue risus, pulvinar a turpis et, commodo aliquet turpis. Nulla aliquam scelerisque mi eget pharetra. Mauris sed posuere elit, ac lobortis metus. Proin lacinia sit amet diam sed auctor. Nam viverra orci id sapien sollicitudin, a aliquam lacus suscipit, \ref{fig:example-1}.~ábra:
-
+Háromdimenziós euklideszi térben parametrikus egyenlettel megadott felületeket hívjuk így. $f:\mathbb{R}^2\rightarrow\mathbb{R}^3$ Azért felület, mert a vektor-értékű függvény értelmezési tartomány beli pontjaihoz háromdimenziós pontokat rendelünk. Modellezéskor így a test felszínét adjuk meg.  Például a tórusz parametrikus egyenlete:
+$$ f(u,v) = \begin{pmatrix} 
+	r\cdot sin(v) \\ 
+	(R+r\cdot cos(v))\cdot sin(u) \\ 
+	(R+r\cdot cos(v))\cdot cos(u)
+\end{pmatrix} $$
+Ahol $r$ a generáló kör sugara, $R$ pedig a forgástengely és a kör középpontjának távolsága. $u$ és $v$ szögek, így $u,v\in[0,2\pi]$  
+Parametrikus egyenlettel megadhatók függvények grafikonjai is. Legyen $h(u,v)$ a függvény, ekkor a grafikon parametrikus egyenlete:
+$$ f(u,v) = (u,v,h(u,v)) $$
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=0.6\textwidth,height=100px]{elte_cimer_szines}
-	\caption{Quisque ac tincidunt leo}
-	\label{fig:example-1}
+	\includegraphics[width=0.3\textwidth]{sinuv}
+	\caption{$h(u,v) = sin(u+v)+1$ grafikon a GeoGebra alkalmazásban.}
 \end{figure}
 
-\subsection{Képek szegélyezése}
+Ezen felületek távolságfüggvénye analitikusan sok esetben nem meghatározható. Vegyünk egy kétdimenziós példát, az $y = sin(x)$ függvényt és egy $(e,f)$ mintavételezési pontot, amihez a legközelebbi pontot keressük a felületen. ekkor a minimalizálandó függvény: 
+$$ d(x) = \sqrt{(x-e)^2+(sin(x)-f)^2} $$
+A gyök függvény szigorú monotonitása miatt vizsgáljuk $d^2$ minimumát. Az elsőrendű szükséges feltétel: 
+$$ cos(x)\cdot(sin(x)-f)+x-e = 0 $$ 
+Ezt csak néhány speciális esetben tudjuk analitikusan megoldani.
 
-Ut aliquet nec neque eget fermentum. Cras volutpat tellus sed placerat elementum. Quisque neque dui, consectetur nec finibus eget, blandit id purus. Nam eget ipsum non nunc placerat interdum.
+Polinomokkal sem boldogulunk könnyen analitikus módszerekkel. Például ha a polinom fokszáma harmadfokú, akkor a négyzetre emelés és deriválás után egy ötödfokú polinom gyökeit kellene meghatározni. Erre már nem létezik megoldóképlet. Ez az eset előkerül a dolgozatomban a Bezier felületek tárgyalásánál.
+
+
+\section{Bézier görbék}
+
+Ennek a résznek alapul G. Farin: Curves and Surfaces for CAGD című könyve szolgált. \cite{farin2002curves} A de Casteljau-algoritmusról és Bézier-görbékről a könyv 45-47., a Bernstein-polinomokról a könyv 57. oldalán olvashatunk. Ezeket itt nem részletezem, csak a szükséges tételeket mutatom be. 
+
+\subsection{Bernstein-alak}
+Az $i$-edik $n$-edfokú Bernstein-polinom alakja:
+$$ B^n_i(t) = \binom{n}{i}t^i(1-t)^{n-i} $$
+Legyenek egy $n$-edfokú Bézier-görbe kontrollpontjai $b_0,b_2,\dots,b_n$ Ekkor a görbe felírható Bernstein-bázisban:
+$$ b(t) = \sum_{i=0}^n b_i B^n_i(t) $$
+Ezt a görbe Bernstein-alakjának is nevezik
+
+\subsection{Végpont interpoláció}
+A Bernstein-polinomok tulajdonságaiból adódik, hogy a görbe a végpontjaiban egyenlő a szélső kontrollpontokkal, azaz interpolál.
+
+\subsection{Pszeudolokális kontroll}
+A legfontosabb tulajdonsága ezen görbéknek, hogy egy kontrollpont megváltoztatása csak annak környezetét változtatja meg jelentősen. Ennek oka, hogy $B^n_i(t)$-nek egyetlen maximuma van, a $t = i/n$ helyen. \cite[62. o.]{farin2002curves}
+
+A végpont interpoláció és a pszeudolokális kontroll miatt a görbe különösen alkalmas számítógépes modellezésre, mivel a felület a kontrollponthálójával intuitívan manipulálható.
+
+\subsection{Derivált}
+A görbe deriváltja: \cite[63. o.]{farin2002curves}
+$$ b'(t) = n\sum_{i=0}^{n-1} \Delta b_i B^{n-1}_i(t) $$
+Ahol $\Delta b_i = b_{i+1} - b_i$ ($\Delta$ a jobboldali differenciaoperátor.)
+
+
+
+\section{Bézier-felületek}
+
+\subsection{Bilineáris interpoláció}
+Farin a Bézier felületeket a tenzor szorzat felületek bevezetéseként írja le. Egy egyik irámyban $m$, másik irányban $n$-edfokú felületet $(m+1)\cross(n+1)$ kontrollpont definiál. A felület pontjai kiszámíthatók a kontrollpontháló ismételt bilineáris interpolációjával. Ezt a felület pontbeli kiértékelésének nevezzük.
 
 \begin{figure}[H]
 	\centering
-	\includegraphics[width=0.6\textwidth,height=100px,frame]{elte_cimer_szines}
-	\caption{Quisque ac tincidunt leo}
+	\includegraphics[width=0.5\textwidth]{Farin_bilinear}
+	\caption{Bézier-felület kiértékelése \cite[248. o.]{farin2002curves}}
 \end{figure}
 
-\subsection{Képek csoportosítása}
+\subsection{Bernstein-alak}
+A végeredmény szempontjából lényegtelen, hogy az interpolációkat milyen sorrendben végezzük. Például kiértékelhetjük a kontrollponthálót az egyik paraméter szerint, majd az így keletkezett kontrollpontok által definiált Bézier-görbét a másik paraméter szerint. \cite[251. o.]{farin2002curves} A felület Bernstein-alakja:
+$$ b^{m,n}(u,v) = \sum_{i=0}^m \sum_{j=0}^n b_{i,j}\, B^m_i(u) B^n_j(v) $$
 
-In non ipsum fermentum urna feugiat rutrum a at odio. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Nulla tincidunt mattis nisl id suscipit. Sed bibendum ac felis sed volutpat. Nam pharetra nisi nec facilisis faucibus. Aenean tristique nec libero non commodo. Nulla egestas laoreet tempus. Nunc eu aliquet nulla, quis vehicula dui. Proin ac risus sodales, gravida nisi vitae, efficitur neque, \ref{fig:example-2}.~ábra:
+\subsection{Parciális deriváltak}
+A könnyebb leírás érdekében bevezetjük a parciális differenciaoperátort. Ennek szabályai: $\Delta^{1,0}b_{i,j} = b_{i+1,j} - b_{i,j}$ és  $\Delta^{0,1}b_{i,j} = b_{i,j+1} - b_{i,j}$
+
+A parciális deriváltat a Bézier-görbe deriváltjára vezetjük vissza:
+$$ \partial_u b^{m,n}(u,v) = \sum_{j=0}^n \left[\partial_u \sum_{i=0}^m b_{i,j} B^m_i(u) \right] B^n_j(v) $$
+$$ \partial_u b^{m,n}(u,v) = m\sum_{j=0}^n \sum_{i=0}^{m-1} \Delta^{1,0} b_{i,j} B^{m-1}_i(u)  B^n_j(v) $$
+A másik parciális derivált hasonlóan meghatározható:
+$$ \partial_v b^{m,n}(u,v) = n\sum_{j=0}^{n-1} \sum_{i=0}^m \Delta^{0,1} b_{i,j} B^m_i(u)  B^{n-1}_j(v) $$
+Magasabbrendű deriváltakat a dolgozatban nem használtam, így azokat itt nem tárgyalom. Az általános alak szintén megtalálható Farin könyvében.
+
+
+
+\section{Legközelebbi pont meghatározása}
+
+A legközelebbi pont meghatározása nem egyszerű feladat. Egyszerűsítésként egy $b(x,y)$ függvény grafikonjára próbáljuk meg meghatározni. Ezen belül is vegyünk egy harmadfokú Bézier-felületet.
+
+\subsection{Merőlegesség feltétel}
+A legközelebbi pont szükséges feltétele: Az $E$ mintavételezési pontból a felületi pontba húzott egyenes merőleges mindkét parciális deriváltra. Egyik irányra felírva:
+$$ r(x,y) = (x,y,b(x,y)) $$
+$$ \frac{dr}{dx} = (1,0,b_x(x,y)) $$
+Ahol $b_x$ az első koordináta szerinti parciális derivált. A mintavételezési pont legyen az origó. Ezt megtehetjük, hiszen a felületet átparaméterezhető úgy, hogy a mintavételezési pont az origóba essen. Ha két vektor merőleges, a skalárszorzatuk $0$.
+$$ 0 = \left\langle r, \frac{dr}{dx} \right\rangle = \begin{pmatrix} 1 $ 0 $ b_x(x,y) \end{pmatrix} \cdot \begin{pmatrix} x \\ y \\ b(x,y)\end{pmatrix} = x + b_x(x,y)b(x,y) $$
+$x$ szerint parciálisan integrálva: 
+$$ f(y) = x^2/2 + b(x,y)^2 $$
+$$ x=0 \rightarrow f(y) = b(0,y)^2 $$
+$$ b(0,y)^2 = x^2/2 + b(x,y)^2 $$
+A feltétel barátságos alakja ellenére a mi esetünkben (harmadfokú Bézier) ez egy ötödfokú kétismeretlenes egyenlet tetszőleges együtthatókkal. 
+
+Látjuk, hogy ez a megközelítés nem vezet eredményre. Ugyanezt az egyenletet kapjuk, ha a szükséges feltételt a felületi normális segítségével írjuk fel. Ezt itt nem részletezem. Az algoritmusok résznél a problémára több közelítési módszert is bemutatok.
+
+% ------------------------------------------------------
+\chapter{Algoritmusok}
+% ------------------------------------------------------
+
+\section{Tesszelláció}
+
+A legelső megjelenítési mód a felület háromszögekkel való közelítése. A Tesszelláció vagy háromszögelés során a cél úgy lefedni háromszögekkel a felületet, hogy annak részletei ne vesszenek el. Ez egyben a leggyakrabban használt modellezési módszer is. A videókártyák hardveresen támogatják háromszögek raszterizációját, így ez a módszer nagyon gyors. A többi módszer helyességét a háromszögekkel tesszellált közelítéssel fogom ellenőrizni. Ha függvények grafikonjait háromszögeljük, általában egyenletes felosztást veszünk a parmétertérben. A függvényértéket a harmadik koordináta reprezentálja.
 
 \begin{figure}[H]
 	\centering
-	\subcaptionbox{Vestibulum quis mattis urna}{
-		\includegraphics[width=0.45\linewidth]{elte_cimer_szines}}
+	\includegraphics[width=0.4\textwidth]{tess_torus}
 	\hspace{5pt}
-	\subcaptionbox{Donec hendrerit quis dui sit amet venenatis}{
-		\includegraphics[width=0.45\linewidth]{elte_cimer_szines}}
-	\caption{Aenean porttitor mi volutpat massa gravida}
-	\label{fig:example-2}
+	\includegraphics[width=0.4\textwidth]{tess_graph.png}
+	\caption{Tórusz és függvénygrafikon háromszögelése. Forrás: \href{https://www.wikiwand.com/en/Surface_triangulation}{wikiwand.com}}
 \end{figure}
 
-Nam et nunc eget elit tincidunt sollicitudin. Quisque ligula ipsum, tempor vitae tortor ut, commodo rhoncus diam. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Phasellus vehicula quam dui, eu convallis metus porta ac.
 
+\section{Sugárkövetés motivációja}
 
-\section{Táblázatok}
+A sugárkövetés mindenképpen költségesebb művelet, mint a raszterizáció, hiszen visszaverődéseket, törést és árnyéksugarakat is számítunk a jobb eredmény érdekében. Ha a fotorealisztikus eredmény a cél, akkor viszont mindenképpen sugárkövetést használunk és a cél az extra számítási költségek csökkentése, a sugárkövetés felgyorsítása. 
 
-Nam magna ex, euismod nec interdum sed, sagittis nec leo. Nam blandit massa bibendum mattis tristique. Phasellus tortor ligula, sodales a consectetur vitae, placerat vitae dolor. Aenean consequat in quam ac mollis. 
-
-\begin{table}[H]
+\begin{figure}[H]
 	\centering
-	\begin{tabular}{ | m{0.25\textwidth} | m{0.65\textwidth} | }
-		\hline
-		\textbf{Phasellus tortor} & \textbf{Aenean consequat} \\
-		\hline \hline
-		\emph{Sed malesuada} & Aliquam aliquam velit in convallis ultrices. \\
-		\hline
-		\emph{Purus sagittis} &  Quisque lobortis eros vitae urna lacinia euismod. \\
-		\hline
-		\emph{Pellentesque} & Curabitur ac lacus pellentesque, eleifend sem ut, placerat enim. Ut auctor tempor odio ut dapibus. \\
-		\hline
-	\end{tabular}
-	\caption{Maecenas tincidunt non justo quis accumsan}
-	\label{tab:example-1}
-\end{table}
+	\includegraphics[width=0.7\textwidth]{pt-rt-raster}
+	\caption{Megjelenítési módok összehasonlítása. Forrás: \href{https://blogs.nvidia.com/blog/2022/03/23/what-is-path-tracing/}{blogs.nvidia.com}}
+\end{figure}
 
-\subsection{Sorok és oszlopok egyesítése}
 
-Mauris a dapibus lectus. Vestibulum commodo nibh ante, ut maximus magna eleifend vel. Integer vehicula elit non lacus lacinia, vitae porttitor dolor ultrices. Vivamus gravida faucibus efficitur. Ut non erat quis arcu vehicula lacinia. Nulla felis mauris, laoreet sed malesuada in, euismod et lacus. Aenean at finibus ipsum. Pellentesque dignissim elit sit amet lacus congue vulputate.
+\section{Fénymodell}
 
-\begin{table}[htb]
+Fénymodellnek egy egyszerű Blinn-Phong árnyalást használtam \cite{Blinn1977} árnyéksugarakkal. Az árnyéksugár számítás ugyanazt az algoritmust használja, mint a sugárkövetés. Ha elmetsszük a felületet a felületi pontból a (pont)fényforrás felé indított sugárral, akkor a felületi pont árnyékban van.
+
+Fontos megemlíteni, hogy a távolságfüggvények segítségével puha árnyékszámító algoritmus is adható. \cite{AreaLights}
+
+
+\section{Távolságfüggvény rács számítása}
+
+A távolságfüggvényt egy diszkrét rácson értékelem ki, melyet egy háromdimenziós textúrában tárolok. Mivel csak a mintavételezési pont változik, maga a kiértékelendő (vagy meghatározandó) távolságfüggvény nem, így ki tudom használni a GPU masszívan párhuzamos architektúráját. A textúrát saját GPU compute shaderek segítségével számítom ki. A számítás elvégzésére később több módszert is mutatok. 
+
+Fontos megjegyezni, hogy ennek a műveletnek nem kell valós idejűnek lennie. A program indításakor a textúra több frame alatt kiszámítható. Ezután elég a textúrát a fragment shader számára feltölteni a GPU-ra a sugárkövetés előtt.
+
+
+\section{Sugárkövetés távolságmezőn}
+
+A sugárkövetés során adott a kiinduló pont $P$, és a sugár iránya $d$. Emellett adott egy $F$ függvény, mely az előbb részletezett textúra olvasást és bilineáris interpolációt elvégzi, majd visszaadja a távolságfüggvény becslését. A távolságfüggvény rácsból az értékeket a textúra bilineáris interpolációjával nyerem ki. Ez a fajta textúra mintavételezés egy hardveresen támogatott művelet a GPU-n. Az alábbi függvény a kiindulási pont és a sugár felülettel vett első metszéspontjának távolságát adja meg.
+
+\begin{algorithm}[H]
+	\caption{Sugárkövetés távolságmezőn}
+	\label{alg:ibb}
+	\textbf{\underline{Funct}} DSFBoxTrace($P,d,F$)
+	\begin{algorithmic}[1] % sorszámok megjelenítése minden n. sor előtt, most n = 1
+		\If{$P$ a dobozon kívül van}
+		\State{\textbf{return} $-1$} \Comment{Távolság nem definiált}
+		\EndIf
+		\If{$F(P) \leq 0$}
+		\State{\textbf{return} $0$} \Comment{A doboz oldalán már a felületben vagyunk}
+		\EndIf
+		\State{$depth := 0$}
+		\For{$i \gets 1$ to maxSteps} \Comment{Maximum lépésszám}                    
+		\State{$dist := F(P + depth * d)$}
+		\If{$abs(dist) < \varepsilon$}
+		\State{\textbf{return} $depth$} \Comment{Eltaláltuk a felületet}
+		\EndIf
+		\State{$depth\; +\! = dist$}
+		\State{$currPos := P + depth * d$}
+		\If{$currPos$ a dobozon kívül van}
+		\State \textbf{return} $-1$; \Comment{Távolság nem definiált, nincs metszés}
+		\EndIf
+		\EndFor
+		\State \textbf{return} $-1$; \Comment{Távolság nem definiált, nincs metszés}
+	\end{algorithmic}
+\end{algorithm}
+
+
+\section{Egyszerűbb távolságfüggvény számító algoritmusok}
+
+Ebben a részben két egyszerűbb megközelítést mutatok be, melyek általánosan használhatók előjeles távolságfüggvények generálására.
+
+\subsection{Lipschitz módszer}
+A módszer elméleti hátterét Bálint Csaba dolgozatából \cite[18. o.]{BalintCsaba} idézem: ,,$\dots$ ha $f \in \mathbb{R}^n \rightarrow \mathbb{R}$ függvény Lipschitz folytonos, akkor
+$$ \frac{|f|}{Lip(f)} $$
+távolságfüggvény becslés. Általában az abszolút érték elhagyható, hogy előjeles távolságfüggvényt kapjunk. Ezzel egy módszert kaptunk arra, hogy egy implicit függvényhez hogyan gyártsunk távolságfüggvényt. Sokszor a $Lip(f)$-et csak felülről tudjuk becsülni, vagy nem éri meg kiszámolni. Ilyenkor természetesen $f$-et a $Lip(f)$ felső becslésével osztva egy rosszabb becslést kapunk, amivel sokszor lényegesen lassabb a számolás.''
+
+A módszerrel egy grafikon például megjeleníthető az alábbi módon:
+\begin{itemize}
+	\item Egy előre meghatározott felbontású rácson kiértékeljük a függvényt. Ezzel egy magasságtérképet generálunk.
+	\item Megbecsüljük a Lipschitz konstanst a számolt értékekből vagy megadjuk analitikusan, ha ismert.
+	\item A távolságmező minden eleme a pont magasságtérképtől vett távolsága lesz, $Lip(f)$-el leosztva. Ezzel távolságfüggvény-becslést kapunk.
+\end{itemize}
+
+\subsection{Brute force}
+A felületet valamilyen felbontáson kiértékeljük. A legközelebbi pont távolságát eltároljuk a távolságmezőben. A módszer hátránya, hogy a számítási igény négyzetesen nő a felbontás növelésével. (Amellett, hogy a háromdimenziós rács minden pontjára külön ki kell számolni.)
+
+A módszer előnye, hogy a távolságmező (a felbontás limitációja mellett) pontos és maximális lesz. A távolságmező minden pontjára igaz, hogy az értéke nem növelhető, hiszen minden pontra létezik olyan sugár, melyen az ott tárolt távolságot lépve a felület egy ismert pontjába lépünk. Ezen tulajdonság miatt a sugárkövetésnek sokkal kevesebb lépésre van szüksége a felület megtalálására. A bemutatott két módszer közül a brute force a preferált, hiszen a távolságmező előszámítható és akár el is tárolható háttértáron.
+
+
+\section{Gradiens módszerek}
+
+A felülettől vett minimális távolság valójában egy optimalizációs probléma. Optimalizációs problémák megoldásának nagyon széles szakirodalma van. Ilyen problémát kell megoldani többek között neuronhálók tanításánál is. 2020-ban távolságfüggvényekkel való ütközésdetektálás javítására is használtak lokális optimalizációt. \cite{locOptSDFCollision} A távolságfüggvényekhez két, a gépi tanulásban elterjedt algoritmust is implementáltam.
+
+\subsection{Gradiens módszer}
+A Gradiens módszer egy elsőrendű iteratív optimalizációs algoritmus. A módszer alapötletét egészen Cauchy-ig vezetik vissza \cite{LemarechalOnGrad}, így egyáltalán nem újszerű. Az iteráció egy lépése:
+$$ a_{n+1} = a_n - \alpha\nabla F(a_n) $$
+Ahol $F$ a minimalizálandó függvény, $\nabla$ a gradiens-operátor és $\alpha$ a tanulási ráta. $\alpha$ egy kis konstans, ami a módszer konvergenciáját biztosítja. Ha túl nagyra állítjuk, akkor a módszer nem konvergál. 
+\begin{figure}[H]
 	\centering
-	\begin{tabular}{ | c | r | r | r | r | r | r | }
-		\hline
-		\multirow{2}{*}{\textbf{Quisque}} & \multicolumn{2}{ c | }{\textbf{Suspendisse}} & \multicolumn{2}{ c | }{\textbf{Aliquam}} & \multicolumn{2}{ c | }{\textbf{Vivamus}} \\
-		\cline{2-7}
-		& Proin & Nunc & Proin & Nunc & Proin & Nunc \\
-		\hline \hline		
-		Leo & 2,80 MB & 100\% & 232 KB & 8,09\% & 248 KB & 8,64\% \\
-		\hline
-		Vel & 9,60 MB & 100\% & 564 KB & 5,74\% & 292 KB & 2,97\% \\
-		\hline
-		Auge & 78,2 MB & 100\% & 52,3 MB & 66,88\% & 3,22 MB & 4,12\% \\
-		\hline 
-	\end{tabular}
-	\caption[Rövid cím a táblázatjegyzékbe]{Vivamus ac arcu fringilla, fermentum neque sed, interdum erat. Mauris bibendum mauris vitae enim mollis, et eleifend turpis aliquet.}
-	\label{tab:example-2}
-\end{table}
+	\includegraphics[width=0.4\textwidth]{divergence}
+	\caption{Gradiens módszer divergenciája túl nagy tanulási ráta esetén}
+\end{figure}
+A módszer felparaméterezését és alkalmazhatóságát a szimulációs eredményeknél tárgyalom.
 
-\subsection{Több oldalra átnyúló táblázatok}
+\subsection{Adam sztochasztikus gradiens módszer}
+Az Adam \cite{Adam} egy sztochasztikus gradiens módszer. Minden lépésben adaptívan változtatja a tanulás paramétereit. Ezekek közül $m_t$ egy tapasztalati momentum, melyet a korábbi gradiensek exponenciálisan csökkenő súlyozásával kapunk. Hasonlóan számítandó $v_t$, mely a gradiensek négyzetének súlyozott átlaga, avagy a tapasztalati szórás. Legyen $g_t$ a gradiens, ekkor
+$$ m_t = \beta_1 m_{t-1} + (1-\beta_1)g_t $$
+$$ v_t = \beta_2 v_{t-1} + (1-\beta_2)g^2_t $$
+Ahol $\beta_1$ és $\beta_2$ a módszer hiperparaméterei. A paraméterek a gyakorlatban a kezdeti értékük felé (általában 0) statisztikai ferdeséget (bias) mutatnak, ezért korrigálni kell őket:
+$$ \hat{m_t} = \frac{m_t}{1-\beta_1^t} $$
+$$ \hat{v_t} = \frac{v_t}{1-\beta_2^t} $$
+Ezután egy lépés szabálya:
+$$ a_{n+1} = a_n - \frac{\alpha}{\sqrt{\hat{v_t}}+\varepsilon}\hat{m_t} $$
+A hiperparaméterekre a cikk szerzői ezeket az értékeket javasolják: $\alpha=0.002$ $\beta_1=0.9$ $\beta_2=0.999$ és $\varepsilon=10^{-6}$. Ezeket szimulációs eredmények alapján állítottam be az saját alkalmazáshoz. Mivel a GPU-n a dupla pontosságú lebegőpontos értékek számításigényesebbek, így shader környezetben nagyobb $\varepsilon$-t kell használni a numerikus stabilitás érdekében.
 
-Nunc porta placerat leo, sit amet porttitor dui porta molestie. Aliquam at fermentum mi. Maecenas vitae lorem at leo tincidunt volutpat at nec tortor. Vivamus semper lacus eu diam laoreet congue. Vivamus in ipsum risus. Nulla ullamcorper finibus mauris non aliquet. Vivamus elementum rhoncus ex ut porttitor.
+\subsection{AdaMax variáns}
+Ezt a módosítást a cikk \cite{Adam} szerzői a cikk végén írják le. A lényege, hogy a szórás számításánál a kettes norma kicserélhető végtelen normára. Ezután a frissítés szabálya átalakítható max függvénnyé: (Itt $v_t$-t $u_t$-re cseréljük a megkülönböztethetőség kedvéért)
+\begin{align*} 
+	u_t &= \beta_2 u_{t-1} + (1-\beta_2)\norm{g_t}_\infty \\ 
+	u_t &= \max (\beta_2 u_{t-1}, |g_t|)
+\end{align*}
+Az AdaMax frissítési szabálya ennek felhasználásával:
+$$ a_{n+1} = a_n - \frac{\alpha}{u_t}\hat{m_t} $$
+Végül ezt a variánst implementáltam GPU-n, mivel a számítása egyszerűbb és numerikusan stabilab, illetve mert néhány iterációval jobb eredményt ért el a szimuláció során. 
 
-\begin{center}
-	\begin{longtable}{ | p{0.3\textwidth} | p{0.7\textwidth} | }
-		
-		\hline
-		\multicolumn{2}{|c|}{\textbf{Praesent aliquam mauris enim}}
-		\\ \hline
-		
-		\emph{Suspendisse potenti} & \emph{Lorem ipsum dolor sit amet}
-		\\ \hline \hline
-		\endfirsthead % első oldal fejléce
-		
-		\hline
-		\emph{Suspendisse potenti} & \emph{Lorem ipsum dolor sit amet}
-		\\ \hline \hline
-		\endhead % többi oldal fejléce
-		
-		\hline
-		\endfoot % többi oldal lábléce
-		
-		\endlastfoot % utolsó oldal lábléce
-		
-		\emph{Praesent}
-		& Nulla ultrices et libero sit amet fringilla. Nunc scelerisque ante tempus sapien placerat convallis.
-		\\ \hline
-		
-		\emph{Luctus}
-		& Integer hendrerit erat massa, non hendrerit risus convallis at. Curabitur ultrices, justo in imperdiet condimentum, neque tortor luctus enim, luctus posuere massa erat vitae nibh.
-		\\ \hline
-		
-		\emph{Egestas}
-		& Duis fermentum feugiat augue in blandit. Mauris a tempor felis. Pellentesque ultricies tristique dignissim. Pellentesque aliquam semper tristique. Nam nec egestas dolor. Vestibulum id elit quis enim fringilla tempor eu a mauris. Aliquam vitae lacus tellus. Phasellus mauris lectus, aliquam id leo eget, auctor dapibus magna. Fusce lacinia felis ac elit luctus luctus.
-		\\ \hline
-		
-		\emph{Dignissim}
-		& Praesent aliquam mauris enim, vestibulum posuere massa facilisis in. Suspendisse potenti. Nam quam purus, rutrum eu augue ut, varius vehicula tellus. Fusce dui diam, aliquet sit amet eros at, sollicitudin facilisis quam. Phasellus tempor metus vel augue gravida pretium. Proin aliquam aliquam blandit. Nulla id tempus mi. Fusce in aliquam tortor.
-		\\ \hline
-		
-		\emph{Pellentesque}
-		& Donec felis nibh, imperdiet a arcu non, vehicula gravida nibh. Quisque interdum sapien eu massa commodo, ac elementum felis faucibus.
-		\\ \hline
-		
-		\emph{Molestie}
-		& Cras ullamcorper tellus et auctor ultricies. Maecenas tincidunt euismod lectus nec venenatis. Suspendisse potenti. Pellentesque pretium nunc ut euismod cursus. Nam venenatis condimentum quam. Curabitur suscipit efficitur aliquet. Interdum et malesuada fames ac ante ipsum primis in faucibus.
-		\\ \hline
-		
-		\emph{Vivamus semper}
-		& In purus purus, faucibus eu libero vulputate, tristique sodales nunc. Nulla ut gravida dolor. Fusce vel pellentesque mi, vel efficitur eros. Nunc vitae elit tellus. Sed vestibulum auctor consequat. 
-		\\ \hline
-		
-		\emph{Condimentum}
-		& Nulla scelerisque, leo et facilisis pretium, risus enim cursus turpis, eu suscipit ipsum ipsum in mauris. Praesent eget pulvinar ipsum, suscipit interdum nunc. Nam varius massa ut justo ullamcorper sollicitudin. Vivamus facilisis suscipit neque, eu fermentum risus. Ut at mi mauris.
-		\\ \hline
-		
-		\caption{Praesent ullamcorper consequat tellus ut eleifend}
-		\label{tab:example-3}		
-	\end{longtable}
-\end{center}
+
+\section{Vetített gradiens módszer}
+
+Előfordul, hogy az optimalizációs problémát a paramétertér csak egy kis részén kívánjuk megoldani. Például Bézier-felületeknél általában a $[0,1]$ intervallumon. Ebben az esetben nem elég az optimalizáció végén levetíteni az eredményt, ugyanis az a legtöbb esetben nem egyezik meg a tartományon vett minimumhellyel. \cite{MirrorDescent} Az sem jó, ha a lépés megtétele után vetítjük le a pontot a tartományra, ekkor ugyanis a gradiens módszer helytelen adatokkal fog számolni. 
+
+Már a gradiens számításakor figyelembe kell venni a korlátokat. Legyen $g$ a gradiens, $\pi_C()$ pedig egy függvény, ami minden pontot a hozzá legközelebbi $C$ tartománybeli pontba visz. A vetített gradiens így számítható:
+$$ g_p = (a_n - \pi_C(a_n-\varepsilon g))/\varepsilon $$
+Ahol $\varepsilon$ egy kis szám. Ez úgy értelmezhető, hogy a gradiens irányába megteszünk egy kis lépést, majd azt levetítjük a tartományra. A vetített pont és az előző pont különbségéből megkapjuk a vetített gradienst irányát.
+
+Ezt odaadjuk a gradiens módszerünknek, majd a lépés után ismét levetítjük. 
