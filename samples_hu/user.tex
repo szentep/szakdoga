@@ -7,15 +7,15 @@
 
 A készített programmal harmadfokú Bézier-felületek jeleníthetők meg. A Bézier-felületeket egy kontrollpont-háló definiálja. A felület pontjait a kontrollpontok speciális súlyozott átlagaként kapjuk. A felület modellezés szempontjából legfontosabb tulajdonsága, hogy a kontrollpontoknak a pont környezetében van leginkább hatása, így a felület a kontrollpont-hálón keresztül intuitívan manipulálható.
 
-Ha a felülethez árnyékokat is szeretnénk kiszámítani, akkor általában valamilyen sugárkövetési algoritmust használunk. A programban az ú.n. sphere trace sugárkövető algoritmust használtam. Ennek megvalósításához szükség van a felületet határoló dobozon belül minden pontban a felület távolságára, vagy annak egy \emph{alsó} közelítésére. Ezt nevezzük távolságfüggvénynek. A távolságfüggvényt egy diszkrét rácson kiértékelem, majd textúrában eltárolom. Ezt nevezzük távolságmezőnek. A távolságmezőt elég a program elején kiszámítani, mert ha a felület nem változik, akkor minden képkocka kirajzolásakor újrahasználható.
+Ha a felülethez árnyékokat is szeretnénk számítani, akkor általában valamilyen sugárkövetési algoritmust használunk. A programban az ún. sphere trace sugárkövető algoritmust használtam. Ennek megvalósításához szükség van a felületet határoló dobozon belül minden pontban a felület távolságára vagy annak egy \emph{alsó} közelítésére. Ezt nevezzük távolságfüggvénynek. A távolságfüggvényt egy diszkrét rácson kiértékelem, majd textúrában eltárolom. Ezt nevezzük távolságmezőnek. A távolságmezőt elég a program elején kiszámítani, mert ha a felület nem változik, akkor minden képkocka kirajzolásakor újrahasználható.
 
-A távolságmező generálására több különböző algoritmust is implementáltam. A program segítségével ezen módszerek paramétereivel lehet kísérletezni, illetve az egyes módszereket össze lehet hasonlítani.
+A távolságmező generálására több különböző algoritmust is implementáltam. A program segítségével ezeknek a módszereknek a paramétereivel lehet kísérletezni, illetve az egyes módszereket össze lehet hasonlítani.
 
 
 \section{A felhasznált módszerek}
 
 \subsection{Tesszelláció}
-A legelső megjelenítési mód a felület háromszögekkel való közelítése. A Tesszelláció vagy háromszögelés során a cél úgy lefedni háromszögekkel a felületet, hogy annak részletei ne vesszenek el. Ez egyben a leggyakrabban használt modellezési módszer is. A videókártyák hardveresen támogatják háromszögek raszterizációját, így ez a módszer nagyon gyors. A többi módszer helyességét a háromszögekkel tesszellált közelítéssel fogom ellenőrizni. Ha függvények grafikonjait háromszögeljük, általában egyenletes felosztást veszünk a parmétertérben. A függvényértéket a harmadik koordináta reprezentálja.
+A legelső megjelenítési mód a felület háromszögekkel való közelítése. A tesszelláció vagy háromszögelés során a cél úgy lefedni háromszögekkel a felületet, hogy annak részletei ne vesszenek el. Ez egyben a leggyakrabban használt modellezési módszer is. A videókártyák hardveresen támogatják háromszögek raszterizációját, így ez a módszer nagyon gyors. A többi módszer helyességét a háromszögekkel tesszellált közelítéssel fogom ellenőrizni. Ha függvények grafikonjait háromszögeljük, általában egyenletes felosztást veszünk a parmétertérben. A függvényértéket a harmadik koordináta reprezentálja.
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=0.4\textwidth]{tess_torus}
@@ -25,7 +25,7 @@ A legelső megjelenítési mód a felület háromszögekkel való közelítése.
 \end{figure}
 
 \subsection{Sugárkövetés motivációja}
-A sugárkövetés mindenképpen költségesebb művelet, mint a raszterizáció, hiszen visszaverődéseket, törést és árnyéksugarakat is számítunk a jobb eredmény érdekében. Ha a fotorealisztikus eredmény a cél, akkor viszont mindenképpen sugárkövetést használunk és a cél az extra számítási költségek csökkentése, a sugárkövetés felgyorsítása. 
+A sugárkövetés mindenképpen költségesebb művelet, mint a raszterizáció, hiszen visszaverődéseket, törést és árnyéksugarakat is számítunk a jobb eredmény érdekében. Ha a fotorealisztikus eredmény a cél, akkor viszont mindenképpen sugárkövetést használunk, és a cél az extra számítási költségek csökkentése, a sugárkövetés felgyorsítása. 
 \begin{figure}[H]
 	\centering
 	\includegraphics[width=0.7\textwidth]{pt-rt-raster}
@@ -35,8 +35,8 @@ A sugárkövetés mindenképpen költségesebb művelet, mint a raszterizáció,
 
 \section{Távolságmező-számítás}
 
-\subsection{Lipschitz módszer}
-A Lipschitz módszer lényege azt használja ki, hogy ha a felületen kicsit arrébb megyünk, akkor a távolság nem változhat tetszőlegesen nagyot. Formálisan:
+\subsection{Lipschitz-módszer}
+A Lipschitz-módszer lényege azt használja ki, hogy ha a felületen kicsit arrébb megyünk, akkor a távolság nem változhat tetszőlegesen nagyot. Formálisan:
 $$ |f(x)-f(y)| \le L \cdot |x-y| $$
 ahol $L$ az ú.n. Lipschitz-konstans. Ennek a konstansnak a beállításával egyszerűen kapunk alsó közelítést a távolságfüggvényre.
 
@@ -68,8 +68,8 @@ Az programban az alábbi fontosabb gyorsbillentyűk érhetők el:
 	\item F12: képernyőfelvétel készítése
 	\item V: VSync be- és kikapcsolása 
 	\item Space: idő megállítása / elindítása
-	\item billenytűzetkiosztástól függően Z vagy Y: nagyítás egy pixel környezetére.
-	\item P: profilozó előhozása / elrejtése. A profilozóval a generálás és kirajzolás CPU- és GPU-idejét lehet mérni. 
+	\item billenytűzetkiosztástól függően Z vagy Y: nagyítás egy pixel környezetére
+	\item P: profilozó előhozása / elrejtése. A profilozóval a generálás és kirajzolás CPU- és GPU idejét lehet mérni. 
 \end{compactenum}
 A gyorsbillentyűkről további információt kapunk, ha a kurzort a ,,Keyboard Shortcuts'' fleirat melletti kérdőjelre visszük. 
 \begin{figure}[H]
@@ -103,11 +103,11 @@ Figyelem, nem minden beállítás eredményez szép képet és helyes megjelení
 	\label{fig:camera-settings}
 \end{figure}
 
-\Aref{fig:compute-settings} ábrán a felület generálásakor használt paramétereket lehet beállítani. Választhatunk a raszterizáció és a sugárkövetés között, vagy akár egymásra rajzoltathatjuk mindkettőt is. A ,,Generate new surface'' gombbal egy új felületet generálhatunk. A felület kontrollponthálóját az alatta lévő számbeviteli mezőkkel is állíthatjuk. A következő beállítások a távolságmező felbontása és a használt GPU-oldali adatreprezentáció, mely minden generálási módszert érint. Az utolsó beállítás a generálási módszer, majd esetleg a módszer hiperparaméterei. Ezek sorban:
+\Aref{fig:compute-settings} ábrán a felület generálásakor használt paramétereket lehet beállítani. Választhatunk a raszterizáció és a sugárkövetés között, vagy akár egymásra rajzoltathatjuk mindkettőt is. A ,,Generate new surface'' gombbal egy új felületet generálhatunk. A felület kontrollponthálóját az alatta lévő számbeviteli mezőkkel is állíthatjuk. A következő beállítások a távolságmező felbontása és a használt GPU oldali adatreprezentáció, mely minden generálási módszert érint. Az utolsó beállítás a generálási módszer, majd esetleg a módszer hiperparaméterei. Ezek sorban:
 \begin{itemize}
-	\item Lipschitz constant: a Lipschitz--módszer konstansa. Minél nagyobb, annál lassabb lesz a sugárkövetés. Ha túl kicsire állítjuk, a módszer nem konvergál.
+	\item Lipschitz constant: a Lipschitz-módszer konstansa. Minél nagyobb, annál lassabb lesz a sugárkövetés. Ha túl kicsire állítjuk, a módszer nem konvergál.
 	\item Number of iterations: az AdaMax módszer iterációszáma.
-	\item Alpha, Beta1, Beta2: Az AdaMax módszer hiperparaméterei. A képminőséget csak extremális esetben, vagy alacsony iterációszámnál befolyásolják.
+	\item Alpha, Beta1, Beta2: Az AdaMax módszer hiperparaméterei. A képminőséget csak extremális esetben vagy alacsony iterációszámnál befolyásolják.
 \end{itemize}
 
 \begin{figure}[H]
@@ -121,7 +121,7 @@ Figyelem, nem minden beállítás eredményez szép képet és helyes megjelení
 
 Beállítható egy ambiens fény, mely a tér minden pontját egyenlően megvilágítja. Egy csúszkával pontfényforrások adhatók a jelenethez, melyeknek a pozíciója és színe külön-külön állítható. A fényforrásoknak van egy alapbeállítása.
 
-Az anyag tulajdonságai az alapszíne (Ambient) illetve a rajta látható visszaverődés diffúz és spakuláris komponenseinek erőssége. Az anyagtulajdonságokat szürkeárnyalatos és RGB formátumban is állíthatjuk.
+Az anyag tulajdonságai az alapszíne (Ambient), illetve a rajta látható visszaverődés diffúz és spakuláris komponenseinek erőssége. Az anyagtulajdonságokat szürkeárnyalatos és RGB formátumban is állíthatjuk.
 
 \begin{figure}[H]
 	\centering
@@ -130,7 +130,7 @@ Az anyag tulajdonságai az alapszíne (Ambient) illetve a rajta látható vissza
 	\label{fig:trace-settings}
 \end{figure}
 
-\Aref{fig:box-settings} ábrán a kirajzolt felületek pozíciója és mérete állítható.
+\Aref{fig:box-settings} ábrán látható menüben a kirajzolt felületek pozíciója és mérete állítható.
 
 \begin{figure}[H]
 	\centering
