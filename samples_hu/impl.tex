@@ -385,6 +385,57 @@ Az osztályokra mutató referenciákat * karakterrel jelöltem. A típusok köz�
 \end{figure}
 
 
+\section{Osztályok}
+
+\subsection{SDFBox}
+A fő program, mely a Falcor keretrendszer IRenderer osztályából származik le. Annak fő metódusait írja felül, melyek a megfelelő szakaszban képkockánként vagy az adott esemény előfordulásakor meghívásra kerülnek. A függvények szerepe:
+\begin{itemize}
+	\item onLoad: A program indulásakor fut le. Itt lehet a saját adattagokat inicializálni.
+	\item onFrameRender: Minden képkocka kirajzolása előtt lefut. A program fő része itt található.
+	\item onShutdown: A program leállásakor fut le.
+	\item onResizeSwapChain: Az ablak átméretezésekor fut le. Lehetőséget ad a kirajzolt elemek átméretezésére.
+	\item onKeyEvent: Billentyűlenyomások kezelhetőek le itt.
+	\item onMouseEvent: Egérbemenetet lehet lekezelni vele.
+	\item onGuiRender: A felhasználói felület kirajzolása ImGui segítségével.
+\end{itemize}
+
+\subsection{SDFBoxPass}
+Egy távolságmezőt tartalmazó kocka. Ez az osztály felelős a távolságmező kirajzolásáért és a kirajzolást végző grafikus program létrehozásáért és futtatásáért.
+
+\subsection{TriangleBoxPass}
+Egy háromszögekkel közelített Bézier-felület raszterizációval történő megjelenítését végzi. A kemény árnyékokhoz ugyanúgy szükség van a távolságmezőre, mint az SDFBoxPass esetében.
+
+\subsection{ComputeProgramWrapper}
+Egy compute shader futtatásához szükséges adatokat tárolja. A compute shader létrehozásához és futtatásához biztosít interfészt.
+
+\subsection{Parameters}
+A jelenetben található objektumok (fények, felületek, kamera) adatait és a generáláshoz szükséges paramétereket tárolja. Az adatokat szükség esetén feltölti a GPU-ra. A beállítások a felhasználói felületen keresztül futási időben is manipulálhatók.
+
+\subsection{Bezier}
+Egy Bézier-felület kontrollponthálóját tárolja. Lekérdező műveleteket ad a parciális differenciákra. Lehetővé teszi véletlen Bézier-felület generálását. A GPU oldali Bezier shader megfelelője.
+
+
+\section{Shaderek}
+
+\subsection{ProceduralHeightmap és SDFTexture}
+A ProceduralHeightmap shader egy magasságtérkép elkészítéséért felel. A bemeneti adatokból magasságtérképet készít, melyet egy kimeneti textúrába ír. Az SDFTexture ebből a magasságtérképből vagy pedig bemeneti adatokból távolságmezőt generál, melyet egy kimeneti textúrában tárol.
+
+\subsection{AdaMax és Bezier}
+Az AdaMax shader az AdaMax gradiens módszer GPU implementációját tartalmazza. A shader gradiensként egy Bézier-felületet értékel ki. A függvénykiértékelést a Bezier shader végzi.
+
+\subsection{Lights és SphereTrace}
+A jelenetben pontfényforrások helyezhetőek el, melyeket a felület Blinn-Phong árnyalásával jelenítek meg. Az árnyalás számításáért a Lights shader felel. Bemeneti adatok a felületi pont, a felületi normális és a kamera pozíció. Az ún. kemény árnyékok számításához a SphereTrace shadert használom, mely egy távolságmezőn képes a sugár felülettel vett metszéspontját meghatározni.
+
+
+\section{Felhasználói eset diagram}
+
+A felhasználó a billentyűzettel, egérgesztusokkal és a grafikus felhasználói felületen keresztül interaktálhat a programmal. Ha egy számítás elvégzéséhez szükséges adat megváltozik, akkor az adatokat a CPU és a GPU oldalon is frissíteni kell és a számításokat újra el kell végezni. A felhasználói esetek diagramja \aref{fig:usecase} ábrán látható.
+\begin{figure}[H]
+	\centering
+	\includegraphics[width=0.8\textwidth]{usecase.png}
+	\caption{Felhasználói eset diagram}
+	\label{fig:usecase}
+\end{figure}
 
 % ------------------------------------------------------
 %\chapter{Implementáció}
@@ -547,7 +598,31 @@ A program célja ugyanazon felület megjelenítése több különböző módszer
 A tesztek eredménye, hogy a felület minden esetben helyesen jelenik meg. Ha a felületet a raszterizációval egyidejűleg rajzoljuk ki, azt is megállapíthatjuk, hogy a mélységértékek is helyesek. Ez lehetővé teszi, hogy a felületet más objektumokkal egyidejűleg rajzoljuk ki.
 
 
-%\section{Program fordítása}
+\section{Keretrendszer és egyéb függőségek}
+
+A programomat a Falcor \cite{Kallweit22} grafikus keretrendszer 5.2-es verziójában készítettem el. A Falcor verziók visszafelé általában nem kompatibilisek, így mindenképpen ezt a verziót kell használni. A függőségeket főként a keretrendszer szabja meg ezek közül a legfontosabbak:
+
+\begin{itemize}
+	\item Windows 10
+	\item Visual Studio 2019
+	\item Windows 10 SDK
+	\item GPU és DirectX 12 Driver
+\end{itemize}
+
+A keretrendszer a CMake build rendszert használja.
+
+\section{Projekt összeállítása és fordítás}
+
+A projekt összeállításának lépései:
+\begin{itemize}
+	\item A Falcor grafikus keretrendszer letöltése: \codeword{git clone https://github.com/NVIDIAGameWorks/Falcor.git} majd visszaállítás 5.2-es verzióra: \codeword{git reset --hard 430824f0}
+	\item Kód elhelyezése a \codeword{Falcor\Source\Samples\SDFBox\} mappában
+	\item A mappa hozzáadása a CMake build rendszerhez \codeword{add_subdirectory(SDFBox)}
+	\item A projekt létrehozása a \codeword{setup_vs2019.bat} szkript futtatásával
+	\item A projekt a \codeword{build/windows-vs2019-d3d12} mappába kerül, melyet Visual Studio 2019-el lehet megnyitni.
+	\item A teljes solution-t nem érdemes lefordítani elegendő az \codeword{SDFBox} projekt lefordítása.
+	\item A program a \codeword{build\windows-vs2019-d3d12\bin\Release\} mappából futtatható.
+\end{itemize}
 
 
 
